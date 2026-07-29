@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAT 冲刺追踪器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f7f6;
+    --ink:#1c2b4a;
+    --ink-soft:#4a5a7a;
+    --red:#c0392b;
+    --red-soft:#e8c4bd;
+    --gold:#b8863b;
+    --gold-soft:#f0dfb8;
+    --sage:#3f7a5e;
+    --sage-soft:#cfe3d8;
+    --line:#c9d2d8;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    background-attachment:fixed;
+    min-height:100vh;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:820px;margin:0 auto;}
+
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+
+  /* ---- HEADER / SIGNATURE ---- */
+  header{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    align-items:flex-end;
+    justify-content:space-between;
+    padding-bottom:20px;
+    margin-bottom:28px;
+    border-bottom:2px solid var(--ink);
+  }
+  .brand{display:flex;flex-direction:column;gap:4px;}
+  .brand .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;letter-spacing:.14em;
+    color:var(--ink-soft);text-transform:uppercase;
+  }
+  .brand h1{font-size:30px;font-weight:700;}
+  .countdown-group{display:flex;gap:22px;flex-wrap:wrap;}
+  .countdown{
+    position:relative;
+    text-align:center;
+    padding:6px 4px;
+  }
+  .countdown-num.ielts{color:var(--gold);}
+  .countdown-num.ielts::after{border-color:var(--gold);}
+
+  .quote-banner{
+    background:var(--ink);color:var(--white);
+    border-radius:10px;padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    margin-bottom:22px;flex-wrap:wrap;
+  }
+  .quote-text{
+    font-family:'Fraunces',serif;font-style:italic;font-size:15px;
+    line-height:1.5;flex:1;min-width:200px;
+  }
+  .quote-btn{
+    border-color:rgba(255,255,255,.4)!important;color:var(--white)!important;
+    flex:0 0 auto;font-size:12px;padding:7px 12px;
+  }
+  .quote-btn:hover{background:rgba(255,255,255,.12);}
+  .countdown-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:44px;font-weight:700;color:var(--red);
+    line-height:1;
+    position:relative;
+    display:inline-block;
+    padding:2px 14px;
+  }
+  .countdown-num::after{
+    content:'';
+    position:absolute;
+    left:-8px;right:-8px;top:-10px;bottom:-6px;
+    border:3px solid var(--red);
+    border-radius:50% / 45%;
+    transform:rotate(-2deg);
+    opacity:.85;
+    pointer-events:none;
+  }
+  .countdown-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.1em;
+    color:var(--ink-soft);text-transform:uppercase;
+    margin-top:8px;
+  }
+  .countdown input[type=date]{
+    margin-top:6px;font-family:'Inter',sans-serif;font-size:11px;
+    border:1px solid var(--line);border-radius:6px;padding:3px 6px;
+    color:var(--ink-soft);background:var(--white);
+  }
+
+  /* ---- CHECK-IN BAR ---- */
+  .checkin-bar{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-left:5px solid var(--sage);
+    border-radius:10px;
+    padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    margin-bottom:28px;
+  }
+  .checkin-bar.pending{border-left-color:var(--red);}
+  .checkin-text strong{display:block;font-size:16px;margin-bottom:2px;}
+  .checkin-text span{font-size:13px;color:var(--ink-soft);}
+  .streak-row{display:flex;gap:5px;margin-top:8px;}
+  .streak-dot{
+    width:16px;height:16px;border-radius:3px;
+    border:1.5px solid var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:transparent;
+  }
+  .streak-dot.done{
+    background:var(--sage-soft);border-color:var(--sage);color:var(--sage);
+  }
+  .task-toggles{display:flex;gap:8px;flex-wrap:wrap;}
+  .task-btn{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;
+    border:1.5px solid var(--ink-soft);color:var(--ink-soft);background:var(--white);
+    border-radius:8px;padding:10px 16px;cursor:pointer;
+  }
+  .task-btn.done{background:var(--sage-soft);border-color:var(--sage);color:var(--sage);}
+
+  button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;
+    border:none;border-radius:8px;padding:11px 18px;cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  button:active{transform:scale(.97);}
+  .btn-primary{background:var(--ink);color:var(--white);}
+  .btn-primary:hover{box-shadow:0 3px 0 var(--gold);}
+  .btn-primary:disabled{background:var(--sage);cursor:default;}
+  .btn-primary:disabled:hover{box-shadow:none;}
+  .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);}
+  .btn-danger{background:transparent;color:var(--red);border:1.5px solid var(--red-soft);}
+  .btn-danger:hover{background:var(--red-soft);}
+
+  /* ---- TABS ---- */
+  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;font-weight:500;
+    padding:9px 16px;border-radius:8px 8px 0 0;
+    background:transparent;color:var(--ink-soft);
+    border:1px solid transparent;border-bottom:none;
+    cursor:pointer;
+  }
+  .tab.active{
+    background:var(--white);color:var(--ink);font-weight:700;
+    border-color:var(--line);
+    box-shadow:0 -2px 0 var(--red) inset;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---- FLASHCARDS ---- */
+  .subject-pills{display:flex;gap:8px;margin-bottom:18px;}
+  .pill{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:6px 14px;border-radius:20px;cursor:pointer;
+    border:1.5px solid var(--line);color:var(--ink-soft);background:var(--white);
+  }
+  .pill.active{border-color:var(--ink);color:var(--ink);background:var(--gold-soft);}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .flashcard{
+    background:var(--white);border:1px solid var(--line);border-radius:12px;
+    min-height:150px;padding:16px;cursor:pointer;
+    display:flex;flex-direction:column;justify-content:space-between;
+    position:relative;transition:box-shadow .15s ease;
+  }
+  .flashcard:hover{box-shadow:0 4px 14px rgba(28,43,74,.08);}
+  .flashcard.mastered{border-color:var(--sage);background:var(--sage-soft);}
+  .fc-tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+    color:var(--ink-soft);text-transform:uppercase;
+  }
+  .fc-front{font-weight:600;font-size:15px;margin:10px 0;line-height:1.4;}
+  .fc-back{font-size:13px;color:var(--ink-soft);line-height:1.5;display:none;margin:10px 0;}
+  .flashcard.flipped .fc-front{display:none;}
+  .flashcard.flipped .fc-back{display:block;}
+  .fc-footer{display:flex;justify-content:space-between;align-items:center;}
+  .fc-hint{font-size:11px;color:var(--ink-soft);}
+  .fc-check{
+    width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto;
+  }
+  .flashcard.mastered .fc-check{background:var(--sage);border-color:var(--sage);color:white;}
+
+  /* ---- WRONG QUESTION LOG ---- */
+  .log-form{
+    background:var(--white);border:1px solid var(--line);border-radius:12px;
+    padding:18px;margin-bottom:20px;
+  }
+  .log-form .row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .log-form select, .log-form input, .log-form textarea{
+    font-family:'Inter',sans-serif;font-size:14px;
+    border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+    background:var(--paper);color:var(--ink);flex:1;min-width:140px;
+  }
+  .log-form textarea{width:100%;min-height:60px;resize:vertical;font-family:inherit;}
+
+  .wq-item{
+    background:var(--white);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-bottom:10px;
+    display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+  }
+  .wq-item.reviewed{opacity:.55;}
+  .wq-main{flex:1;}
+  .wq-tags{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+  .wq-tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    padding:2px 8px;border-radius:10px;background:var(--gold-soft);color:var(--ink);
+  }
+  .wq-tag.reason{background:var(--red-soft);}
+  .wq-text{font-size:14px;margin-bottom:4px;}
+  .wq-note{font-size:12px;color:var(--ink-soft);}
+  .wq-actions{display:flex;gap:6px;flex-direction:column;}
+  .wq-actions button{padding:6px 10px;font-size:12px;}
+  .empty{
+    text-align:center;padding:40px 20px;color:var(--ink-soft);font-size:14px;
+    border:1.5px dashed var(--line);border-radius:12px;
+  }
+
+  /* ---- STATS ---- */
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;}
+  .stat-box{
+    background:var(--white);border:1px solid var(--line);border-radius:12px;
+    padding:16px;text-align:center;
+  }
+  .stat-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--ink);}
+  .stat-label{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  .section-title{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .section-title h2{font-size:19px;}
+  .section-title .num{
+    font-family:'JetBrains Mono',monospace;color:var(--red);font-size:14px;
+  }
+
+  footer{
+    text-align:center;margin-top:36px;font-size:12px;color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace;
+  }
+  ::selection{background:var(--gold-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="eyebrow">SAT · Aug 冲刺计划</span>
+      <h1>练习追踪器</h1>
+    </div>
+    <div class="countdown-group">
+      <div class="countdown">
+        <div class="countdown-num sat" id="daysLeft">--</div>
+        <div class="countdown-label">SAT · days left</div>
+        <input type="date" id="testDate">
+      </div>
+      <div class="countdown">
+        <div class="countdown-num ielts" id="daysLeftIelts">--</div>
+        <div class="countdown-label">IELTS · days left</div>
+        <input type="date" id="ieltsDate">
+      </div>
+    </div>
+  </header>
+
+  <div class="quote-banner" id="quoteBanner">
+    <div class="quote-text" id="quoteText">加载中…</div>
+    <button class="btn-ghost quote-btn" id="newQuoteBtn">换一句</button>
+  </div>
+
+  <div class="checkin-bar" id="checkinBar">
+    <div class="checkin-text">
+      <strong id="checkinTitle">今天还没练习</strong>
+      <span id="checkinSub">哪怕只做一点点，SAT 或 IELTS 任选一个打勾</span>
+      <div class="streak-row" id="streakRow"></div>
+    </div>
+    <div class="task-toggles">
+      <button class="task-btn" id="taskSatBtn">SAT ○</button>
+      <button class="task-btn" id="taskIeltsBtn">IELTS ○</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="knowledge">📘 知识点</button>
+    <button class="tab" data-panel="wrong">✍️ 错题本</button>
+    <button class="tab" data-panel="stats">📊 统计</button>
+  </div>
+
+  <!-- KNOWLEDGE PANEL -->
+  <div class="panel active" id="panel-knowledge">
+    <div class="subject-pills" id="subjectPills"></div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+
+  <!-- WRONG QUESTION PANEL -->
+  <div class="panel" id="panel-wrong">
+    <div class="log-form">
+      <div class="row">
+        <select id="wqSubject">
+          <option value="数学">数学</option>
+          <option value="语法">语法</option>
+          <option value="词汇">词汇</option>
+          <option value="阅读">阅读</option>
+          <option value="IELTS">IELTS</option>
+        </select>
+        <select id="wqReason">
+          <option value="不会">完全不会</option>
+          <option value="粗心">知道但粗心</option>
+          <option value="超时">超时没做完</option>
+          <option value="审题">审题错了</option>
+        </select>
+      </div>
+      <textarea id="wqText" placeholder="题目内容 / 考点是什么（简要描述）"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <input type="text" id="wqNote" placeholder="正确做法 / 你的教训（一句话）">
+      </div>
+      <button class="btn-primary" id="wqAddBtn" style="margin-top:6px;">+ 添加错题</button>
+    </div>
+    <div class="section-title"><h2>错题列表</h2><span class="num" id="wqCount"></span></div>
+    <div id="wqList"></div>
+  </div>
+
+  <!-- STATS PANEL -->
+  <div class="panel" id="panel-stats">
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="statStreak">0</div><div class="stat-label">当前连续打卡天数</div></div>
+      <div class="stat-box"><div class="stat-num" id="statTotalCheckins">0</div><div class="stat-label">累计打卡天数</div></div>
+      <div class="stat-box"><div class="stat-num" id="statMastered">0</div><div class="stat-label">已掌握知识点</div></div>
+      <div class="stat-box"><div class="stat-num" id="statWrong">0</div><div class="stat-label">待复习错题</div></div>
+    </div>
+    <div class="section-title"><h2>按科目分类的错题数</h2></div>
+    <div class="stat-row" id="subjectBreakdown"></div>
+  </div>
+
+  <footer>数据仅保存在你的账号下，仅自己可见 · 每天打开这个页面来提醒自己练习</footer>
+</div>
+
+<script>
+const KNOWLEDGE_BANK = [
+  // MATH
+  {id:'m1', subj:'数学', front:'斜率公式是什么？', back:'m = (y₂-y₁)/(x₂-x₁)。每 unit x 变化，y 变化 m 个单位。'},
+  {id:'m2', subj:'数学', front:'两条直线 y=m₁x+b₁ 和 y=m₂x+b₂，什么时候无解/一解/无穷解？', back:'m₁=m₂且b₁≠b₂ → 平行，无解；m₁=m₂且b₁=b₂ → 同一条线，无穷解；m₁≠m₂ → 一个交点，一解。'},
+  {id:'m3', subj:'数学', front:'二次函数的三种形式分别是？', back:'标准式 y=ax²+bx+c（看y轴截距c）；顶点式 y=a(x-h)²+k（看顶点(h,k)）；因式式 y=a(x-x₁)(x-x₂)（看x轴截距）。'},
+  {id:'m4', subj:'数学', front:'判别式 Δ=b²-4ac 的意义？', back:'Δ>0：两个实数解；Δ=0：一个解（相切）；Δ<0：无实数解。'},
+  {id:'m5', subj:'数学', front:'指数增长/复利公式？', back:'简单：P(1+r%·t)；复利：P(1+r%/n)^(t·n)；一般式：Initial × (growth factor)^(x/周期)。'},
+  {id:'m6', subj:'数学', front:'一组数据的每个值都乘以 k，标准差怎么变？加上常数呢？', back:'乘以 k → 标准差也乘以 k（取绝对值）。加常数 → 标准差不变（只是整体平移）。'},
+  {id:'m7', subj:'数学', front:'相似图形的边长比是 1:x，那面积比和体积比是？', back:'长度比 1:x → 面积比 1:x²，体积比 1:x³。'},
+  {id:'m8', subj:'数学', front:'SOHCAHTOA 分别代表什么？', back:'sin=对边/斜边，cos=邻边/斜边，tan=对边/邻边。sinθ=cos(90°-θ)。'},
+  {id:'m9', subj:'数学', front:'圆的一般式 (x-a)²+(y-b)²=r²，圆心和半径是？', back:'圆心 (a,b)，半径 r（注意等式右边是 r²，别忘开根号）。'},
+  {id:'m10', subj:'数学', front:'margin of error 受什么因素影响？', back:'样本量越大，margin of error 越小；标准差越大，margin of error 越大。'},
+
+  // GRAMMAR
+  {id:'g1', subj:'语法', front:'判断谓语/非谓语的完整步骤是什么？', back:'① 看是否有非谓语形式的选项 → ② 看句子里其他地方有没有已经存在的谓语 → 有就选非谓语，没有就选谓语 → ③ 若都是谓语，看主谓数量一致 → ④ 若数量能一致，看时态。'},
+  {id:'g2', subj:'语法', front:'that 前面能不能加逗号？', back:'不能。逗号+that 是错误用法。非限定从句要用 which，不能用 that。'},
+  {id:'g3', subj:'语法', front:'however 和 but 的核心区别？', back:'however 是副词，不能连接两个完整句子（要用分号或句号分开）；but 是连词，可以直接连接两个完整句子。'},
+  {id:'g4', subj:'语法', front:'三者并列 A, B, and C 出现错误选项时的常见陷阱？', back:'"i and" 连用一定错；分析并列结构内部通常默认用分号断句，整体和前一句关系通常是解释说明。'},
+  {id:'g5', subj:'语法', front:'如何判断一段内容是不是插入语？', back:'看能不能删掉且不影响句意，能删的才是插入语（不是所有逗号中间的内容都是插入语）。'},
+  {id:'g6', subj:'语法', front:'its / it\'s / their / they\'re 怎么区分？', back:'it\'s = it is/was（谓语缩写）；its = 它的（所有格）；they\'re = they are（谓语）；their = 他们的（所有格）。'},
+  {id:'g7', subj:'语法', front:'"indeed / in fact" 和 "actually / in reality" 作为过渡词的核心区别？', back:'indeed/in fact 是用事实支持/证明前一句的观点（前后态度一致）；actually/in reality 是否定/推翻前一句的观点。'},
+  {id:'g8', subj:'语法', front:'namely 前面该用什么标点？', back:'namely 前面只能用破折号 "—" 或冒号 "："，不能用逗号。'},
+  {id:'g9', subj:'语法', front:'逻辑主语题：句首是非谓语动词开头时，怎么找正确主语？', back:'确定非谓语动词的主被动关系，然后找后面主句里"发出/承受这个动作"的那个主语，就近不就近看开头指代是否一致。'},
+  {id:'g10', subj:'语法', front:'so + 助动词 + 主语 这个结构表示什么？', back:'表示"……也是/也会"，类似于 "so do I"。例如：the level of sensory input can be controlled, so can the speed。'},
+
+  // VOCAB (starter set, add your own)
+  {id:'v1', subj:'词汇', front:'ubiquitous', back:'到处存在的，无所不在的 (adj.)'},
+  {id:'v2', subj:'词汇', front:'ambivalent', back:'矛盾的，摇摆不定的 (adj.) —对某事同时有两种相反的感受'},
+  {id:'v3', subj:'词汇', front:'mitigate', back:'缓解，减轻 (v.)'},
+  {id:'v4', subj:'词汇', front:'skeptical', back:'怀疑的，不轻信的 (adj.)'},
+  {id:'v5', subj:'词汇', front:'meticulous', back:'一丝不苟的，极其细致的 (adj.)'},
+
+  // IELTS
+  {id:'i1', subj:'IELTS', front:'Writing Task 2 的基本结构？', back:'Intro（改写题目+给出立场）→ Body 1（一个理由+例子）→ Body 2（另一个理由+例子）→ Conclusion（总结立场）。'},
+  {id:'i2', subj:'IELTS', front:'Speaking Part 2 卡壳了怎么办？', back:'用万能过渡句争取思考时间，比如 "That\\'s an interesting question, let me think..."，然后从人物/时间/地点/感受任一角度先开口。'},
+  {id:'i3', subj:'IELTS', front:'Reading 判断 True/False/Not Given 的关键？', back:'True=文章明确支持；False=文章明确反对；Not Given=文章根本没提到，不要用常识去推断。'},
+  {id:'i4', subj:'IELTS', front:'Listening 里数字/拼写题最容易错在哪？', back:'常见陷阱：先说错的数字再纠正（用but/actually引出正确答案）；一定要写最后确认的那个。'},
+];
+
+// ---------- STORAGE HELPERS ----------
+async function storageGet(key){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+async function storageSet(key,val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){ console.error('storage set failed', key, e); }
+}
+
+const QUOTES = [
+  '不用今天就完美，只要比昨天更熟练一点。',
+  '错题不是耻辱，是你为考试当天预付的学费。',
+  '你已经比一个月前的自己强很多了，继续。',
+  '慢一点做对，比快一点做错更省时间。',
+  '今天哪怕只做十道题，也比不做强一百倍。',
+  '你不是没天赋，只是还没到自动化的程度。',
+  '倒计时不是压力，是让你知道每一天都算数。',
+  '休息也是计划的一部分，别把自己逼到断掉。',
+  '一次没考好的分数，不代表你现在的水平。',
+  '写下的每一条笔记，都是未来考场上的一秒钟。',
+  '专注地做少量题，好过分心地刷一堆题。',
+  '你能坚持记这么多笔记，就已经赢过大多数人了。',
+];
+
+let state = {
+  dailyTasks: {},       // { '2026-07-28': {sat:true, ielts:false}, ... }
+  testDate: null,
+  ieltsDate: null,
+  knowledgeProgress: {}, // { m1: true, ... }
+  wrongQuestions: []     // [{id,subj,reason,text,note,reviewed,created}]
+};
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function loadState(){
+  const dailyTasks = await storageGet('dailyTasks');
+  const testDate = await storageGet('testDate');
+  const ieltsDate = await storageGet('ieltsDate');
+  const progress = await storageGet('knowledgeProgress');
+  const wq = await storageGet('wrongQuestions');
+  if(dailyTasks) state.dailyTasks = dailyTasks;
+  if(testDate) state.testDate = testDate;
+  if(ieltsDate) state.ieltsDate = ieltsDate;
+  if(progress) state.knowledgeProgress = progress;
+  if(wq) state.wrongQuestions = wq;
+}
+
+// ---------- COUNTDOWN ----------
+function daysUntil(dateStr){
+  return Math.ceil((new Date(dateStr+'T00:00:00') - new Date(todayStr()+'T00:00:00'))/86400000);
+}
+function renderCountdown(){
+  if(!state.testDate) state.testDate = '2026-08-22';   // your SAT test date
+  if(!state.ieltsDate) state.ieltsDate = '2026-08-29';  // your IELTS test date
+
+  document.getElementById('testDate').value = state.testDate;
+  document.getElementById('ieltsDate').value = state.ieltsDate;
+
+  const satDiff = daysUntil(state.testDate);
+  const ieltsDiff = daysUntil(state.ieltsDate);
+  document.getElementById('daysLeft').textContent = satDiff >= 0 ? satDiff : 0;
+  document.getElementById('daysLeftIelts').textContent = ieltsDiff >= 0 ? ieltsDiff : 0;
+}
+document.getElementById('testDate').addEventListener('change', async (e)=>{
+  state.testDate = e.target.value;
+  await storageSet('testDate', state.testDate);
+  renderCountdown();
+});
+document.getElementById('ieltsDate').addEventListener('change', async (e)=>{
+  state.ieltsDate = e.target.value;
+  await storageSet('ieltsDate', state.ieltsDate);
+  renderCountdown();
+});
+
+// ---------- QUOTE ----------
+function dayIndexSeed(){
+  // stable per-day index so the quote doesn't change on every reload
+  const d = todayStr();
+  let hash = 0;
+  for(let i=0;i<d.length;i++) hash = (hash*31 + d.charCodeAt(i)) % QUOTES.length;
+  return Math.abs(hash);
+}
+let quoteIdx = dayIndexSeed();
+function renderQuote(){
+  document.getElementById('quoteText').textContent = '“ ' + QUOTES[quoteIdx] + ' ”';
+}
+document.getElementById('newQuoteBtn').addEventListener('click', ()=>{
+  quoteIdx = (quoteIdx + 1) % QUOTES.length;
+  renderQuote();
+});
+
+// ---------- CHECK-IN (SAT + IELTS daily tasks) ----------
+function dateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dayDone(key){ const t = state.dailyTasks[key]; return !!(t && (t.sat || t.ielts)); }
+
+function getStreak(){
+  let streak = 0;
+  let d = new Date(todayStr()+'T00:00:00');
+  if(!dayDone(todayStr())) d.setDate(d.getDate()-1);
+  while(true){
+    const key = dateKey(d);
+    if(dayDone(key)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+
+function renderCheckin(){
+  const today = todayStr();
+  const t = state.dailyTasks[today] || {sat:false, ielts:false};
+  const doneToday = t.sat || t.ielts;
+  const bothDone = t.sat && t.ielts;
+
+  const bar = document.getElementById('checkinBar');
+  bar.classList.toggle('pending', !doneToday);
+  document.getElementById('checkinTitle').textContent =
+    bothDone ? 'SAT 和 IELTS 今天都练了 🎉' : doneToday ? '今天已经动手练了，很好' : '今天还没练习';
+  document.getElementById('checkinSub').textContent =
+    doneToday ? '如果还有时间，另一门也顺手练一点' : '哪怕只做一点点，SAT 或 IELTS 任选一个打勾';
+
+  const satBtn = document.getElementById('taskSatBtn');
+  const ieltsBtn = document.getElementById('taskIeltsBtn');
+  satBtn.textContent = 'SAT ' + (t.sat ? '✓' : '○');
+  satBtn.classList.toggle('done', !!t.sat);
+  ieltsBtn.textContent = 'IELTS ' + (t.ielts ? '✓' : '○');
+  ieltsBtn.classList.toggle('done', !!t.ielts);
+
+  const row = document.getElementById('streakRow');
+  row.innerHTML='';
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = dateKey(d);
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot'+(dayDone(key)?' done':'');
+    dot.textContent = dayDone(key) ? '✓' : '';
+    dot.title = key;
+    row.appendChild(dot);
+  }
+}
+
+async function toggleTask(subj){
+  const today = todayStr();
+  if(!state.dailyTasks[today]) state.dailyTasks[today] = {sat:false, ielts:false};
+  state.dailyTasks[today][subj] = !state.dailyTasks[today][subj];
+  await storageSet('dailyTasks', state.dailyTasks);
+  renderCheckin();
+  renderStats();
+}
+document.getElementById('taskSatBtn').addEventListener('click', ()=>toggleTask('sat'));
+document.getElementById('taskIeltsBtn').addEventListener('click', ()=>toggleTask('ielts'));
+
+// ---------- KNOWLEDGE FLASHCARDS ----------
+let activeSubject = '全部';
+function renderPills(){
+  const subjects = ['全部','数学','语法','词汇','IELTS'];
+  const wrap = document.getElementById('subjectPills');
+  wrap.innerHTML='';
+  subjects.forEach(s=>{
+    const p = document.createElement('div');
+    p.className = 'pill'+(s===activeSubject?' active':'');
+    p.textContent = s;
+    p.onclick = ()=>{ activeSubject = s; renderPills(); renderCards(); };
+    wrap.appendChild(p);
+  });
+}
+function renderCards(){
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML='';
+  const list = KNOWLEDGE_BANK.filter(c => activeSubject==='全部' || c.subj===activeSubject);
+  list.forEach(c=>{
+    const mastered = !!state.knowledgeProgress[c.id];
+    const el = document.createElement('div');
+    el.className = 'flashcard'+(mastered?' mastered':'');
+    el.innerHTML = `
+      <div class="fc-tag">${c.subj}</div>
+      <div class="fc-front">${c.front}</div>
+      <div class="fc-back">${c.back}</div>
+      <div class="fc-footer">
+        <span class="fc-hint">点击卡片翻面</span>
+        <div class="fc-check">${mastered?'✓':''}</div>
+      </div>`;
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('.fc-check')) return;
+      el.classList.toggle('flipped');
+    });
+    el.querySelector('.fc-check').addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      state.knowledgeProgress[c.id] = !mastered;
+      await storageSet('knowledgeProgress', state.knowledgeProgress);
+      renderCards();
+      renderStats();
+    });
+    grid.appendChild(el);
+  });
+}
+
+// ---------- WRONG QUESTIONS ----------
+function renderWQList(){
+  const list = document.getElementById('wqList');
+  list.innerHTML='';
+  document.getElementById('wqCount').textContent = state.wrongQuestions.filter(q=>!q.reviewed).length + ' 待复习';
+  if(state.wrongQuestions.length===0){
+    list.innerHTML = '<div class="empty">还没有错题记录 — 练完题就把错题加到这里，定期回来复习</div>';
+    return;
+  }
+  [...state.wrongQuestions].reverse().forEach(q=>{
+    const el = document.createElement('div');
+    el.className = 'wq-item'+(q.reviewed?' reviewed':'');
+    el.innerHTML = `
+      <div class="wq-main">
+        <div class="wq-tags">
+          <span class="wq-tag">${q.subj}</span>
+          <span class="wq-tag reason">${q.reason}</span>
+        </div>
+        <div class="wq-text">${q.text || '(未填写题目内容)'}</div>
+        ${q.note ? `<div class="wq-note">📌 ${q.note}</div>` : ''}
+      </div>
+      <div class="wq-actions">
+        <button class="btn-ghost" data-act="toggle">${q.reviewed?'标记未复习':'标记已复习'}</button>
+        <button class="btn-danger" data-act="delete">删除</button>
+      </div>`;
+    el.querySelector('[data-act="toggle"]').onclick = async ()=>{
+      q.reviewed = !q.reviewed;
+      await storageSet('wrongQuestions', state.wrongQuestions);
+      renderWQList(); renderStats();
+    };
+    el.querySelector('[data-act="delete"]').onclick = async ()=>{
+      state.wrongQuestions = state.wrongQuestions.filter(x=>x.id!==q.id);
+      await storageSet('wrongQuestions', state.wrongQuestions);
+      renderWQList(); renderStats();
+    };
+    list.appendChild(el);
+  });
+}
+
+document.getElementById('wqAddBtn').addEventListener('click', async ()=>{
+  const subj = document.getElementById('wqSubject').value;
+  const reason = document.getElementById('wqReason').value;
+  const text = document.getElementById('wqText').value.trim();
+  const note = document.getElementById('wqNote').value.trim();
+  if(!text && !note){ document.getElementById('wqText').focus(); return; }
+  state.wrongQuestions.push({
+    id: 'wq_'+Date.now(),
+    subj, reason, text, note,
+    reviewed:false,
+    created: todayStr()
+  });
+  await storageSet('wrongQuestions', state.wrongQuestions);
+  document.getElementById('wqText').value='';
+  document.getElementById('wqNote').value='';
+  renderWQList(); renderStats();
+});
+
+// ---------- STATS ----------
+function renderStats(){
+  document.getElementById('statStreak').textContent = getStreak();
+  document.getElementById('statTotalCheckins').textContent = Object.keys(state.dailyTasks).filter(k=>dayDone(k)).length;
+  document.getElementById('statMastered').textContent = Object.values(state.knowledgeProgress).filter(Boolean).length + ' / ' + KNOWLEDGE_BANK.length;
+  document.getElementById('statWrong').textContent = state.wrongQuestions.filter(q=>!q.reviewed).length;
+
+  const bySubj = {};
+  state.wrongQuestions.forEach(q=>{ bySubj[q.subj] = (bySubj[q.subj]||0)+1; });
+  const wrap = document.getElementById('subjectBreakdown');
+  wrap.innerHTML='';
+  ['数学','语法','词汇','阅读','IELTS'].forEach(s=>{
+    const box = document.createElement('div');
+    box.className='stat-box';
+    box.innerHTML = `<div class="stat-num">${bySubj[s]||0}</div><div class="stat-label">${s}</div>`;
+    wrap.appendChild(box);
+  });
+}
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+  });
+});
+
+// ---------- INIT ----------
+(async function init(){
+  await loadState();
+  renderCountdown();
+  renderQuote();
+  renderCheckin();
+  renderPills();
+  renderCards();
+  renderWQList();
+  renderStats();
+})();
+</script>
+</body>
+</html>
